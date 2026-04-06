@@ -18,16 +18,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Cloudflare Types
-        run: yarn gen
+        run: npm run gen
 
       - name: Build
-        run: yarn build
+        run: npm run build
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
