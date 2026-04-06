@@ -1,13 +1,13 @@
 <script lang="ts">
 	import '../app.css';
 	import { fade, fly } from 'svelte/transition';
-	import { Keyboard as KeyboardIcon, Settings, Trophy, Code } from 'lucide-svelte';
+	import { Keyboard as KeyboardIcon, Settings, Trophy, Code, AirVent, Key } from 'lucide-svelte';
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<title>sebeolsik — keyboard practice</title>
+	<title>세벌식 타자연습</title>
 	<meta name="description" content="Master the Se-yeonsik 3-set keyboard layout with our premium typing practice application." />
 	<link rel="icon" type="image/png" href="/favicon.png" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
