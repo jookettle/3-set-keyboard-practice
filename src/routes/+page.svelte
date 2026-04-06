@@ -70,6 +70,7 @@
     
     let startTime = $state<number | null>(null);
     let keystrokes = $state(0);
+    let correctKeystrokes = $state(0);
     let wpm = $state(0);
     let accuracy = $state(100);
     let combo = $state(0);
@@ -106,34 +107,52 @@
     };
 
     const updateMetrics = () => {
-        if (!startTime || keystrokes === 0) return;
+        if (!startTime) return;
         const timeElapsed = (Date.now() - startTime) / 1000 / 60;
-        wpm = Math.round((keystrokes / 5) / timeElapsed);
+        if (timeElapsed <= 0) return;
+
+        let strokesForSpeed = 0;
+        if (appMode === 'sentence') {
+            const layout = layouts[selectedLayout];
+            for (let i = 0; i < finalizedText.length; i++) {
+                if (i < currentText.length && finalizedText[i] === currentText[i]) {
+                    strokesForSpeed += getSebeolsikKeystrokes(finalizedText[i], layout).length;
+                }
+            }
+        } else {
+            strokesForSpeed = correctKeystrokes;
+        }
+
+        wpm = Math.round((strokesForSpeed / 5) / timeElapsed);
         
-        if (finalizedText.length === 0) {
+        if (finalizedText.length === 0 && appMode === 'sentence') {
             accuracy = 100;
             return;
         }
 
-        let correct = 0;
-        const limit = Math.min(finalizedText.length, currentText.length);
-        for (let i = 0; i < limit; i++) {
-            if (finalizedText[i] === currentText[i]) correct++;
-        }
-        accuracy = Math.round((correct / finalizedText.length) * 100);
-
-        let currentCombo = 0;
-        for (let i = finalizedText.length - 1; i >= 0; i--) {
-            if (finalizedText[i] === currentText[i]) currentCombo++;
-            else break;
-        }
-        combo = currentCombo;
-
-        if (finalizedText.length >= currentText.length && finalizedText.slice(0, currentText.length) === currentText) {
-            if (!isFinished) {
-                isFinished = true;
-                setTimeout(() => nextSentence(), 700);
+        if (appMode === 'sentence') {
+            let correct = 0;
+            const limit = Math.min(finalizedText.length, currentText.length);
+            for (let i = 0; i < limit; i++) {
+                if (finalizedText[i] === currentText[i]) correct++;
             }
+            accuracy = Math.round((correct / finalizedText.length) * 100);
+
+            let currentCombo = 0;
+            for (let i = finalizedText.length - 1; i >= 0; i--) {
+                if (finalizedText[i] === currentText[i]) currentCombo++;
+                else break;
+            }
+            combo = currentCombo;
+
+            if (finalizedText.length >= currentText.length && finalizedText.slice(0, currentText.length) === currentText) {
+                if (!isFinished) {
+                    isFinished = true;
+                    setTimeout(() => nextSentence(), 700);
+                }
+            }
+        } else {
+            accuracy = keystrokes > 0 ? Math.round((correctKeystrokes / keystrokes) * 100) : 100;
         }
     };
 
@@ -160,7 +179,9 @@
 
         if (appMode === 'key') {
             keystrokes++;
+            if (!startTime) startTime = Date.now();
             if (e.code === currentTargetKey.code && e.shiftKey === currentTargetKey.shift) {
+                correctKeystrokes++;
                 combo++;
                 currentKeyIdx = Math.floor(Math.random() * filteredKeys().length);
             } else {
@@ -222,6 +243,7 @@
         composition = { onset: [], vowel: [], coda: [] };
         startTime = null;
         keystrokes = 0;
+        correctKeystrokes = 0;
         wpm = 0;
         accuracy = 100;
         combo = 0;
